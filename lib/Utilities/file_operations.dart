@@ -44,11 +44,14 @@ class FileOperations {
           bytes: images[i].readAsBytesSync(),
         );
 
-        doc.addPage(pw.Page(build: (pw.Context context) {
-          return pw.Center(
-            child: pw.Image(image),
-          ); // Center
-        }));
+        doc.addPage(pw.Page(
+          build: (pw.Context context) {
+            return pw.Center(
+              child: pw.Image(image),
+            );
+          },
+          margin: pw.EdgeInsets.all(5.0),
+        ));
       }
 
       output.writeAsBytesSync(doc.save());
