@@ -22,7 +22,6 @@ if (flutterVersionName == null) {
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 def keystoreProperties = new Properties()
@@ -34,17 +33,13 @@ if (keystorePropertiesFile.exists()) {
 android {
     compileSdkVersion 29
 
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
-
     lintOptions {
         disable 'InvalidPackage'
     }
 
     defaultConfig {
-        applicationId "com.ethereal.openscan"
-        minSdkVersion 16
+       applicationId "com.ethereal.openscan"
+        minSdkVersion 16 
         targetSdkVersion 29
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -58,6 +53,7 @@ android {
            storePassword keystoreProperties['storePassword']
        }
    }
+   
    buildTypes {
        release {
            signingConfig signingConfigs.release
@@ -70,5 +66,6 @@ flutter {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation project(path: ':openCVLibrary3413')
 }
+

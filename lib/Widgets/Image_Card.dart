@@ -1,8 +1,9 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_scanner_cropper/flutter_scanner_cropper.dart';
+// import 'package:flutter_scanner_cropper/flutter_scanner_cropper.dart';
 import 'package:focused_menu/focused_menu.dart';
 import 'package:focused_menu/modals.dart';
 import 'package:openscan/Utilities/Classes.dart';
@@ -69,12 +70,14 @@ class _ImageCardState extends State<ImageCard> {
                 ),
                 onPressed: () async {
                   Directory cacheDir = await getTemporaryDirectory();
-                  String imageFilePath = await FlutterScannerCropper.openCrop(
-                    src: widget.imageOS.imgPath,
-                    dest: cacheDir.path,
-                    shouldCompress:
-                        widget.imageOS.shouldCompress == 1 ? true : false,
-                  );
+                  // String imageFilePath = await FlutterScannerCropper.openCrop(
+                  //   src: widget.imageOS.imgPath,
+                  //   dest: cacheDir.path,
+                  //   shouldCompress:
+                  //       widget.imageOS.shouldCompress == 1 ? true : false,
+                  // );
+                  // TODO: Below line newly added. Remove once cropper works
+                  String imageFilePath = widget.imageOS.imgPath;
                   File image = File(imageFilePath);
                   File temp = File(widget.imageOS.imgPath.substring(
                           0, widget.imageOS.imgPath.lastIndexOf(".")) +

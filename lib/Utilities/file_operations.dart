@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:directory_picker/directory_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_scanner_cropper/flutter_scanner_cropper.dart';
+// import 'package:flutter_scanner_cropper/flutter_scanner_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:openscan/Utilities/Classes.dart';
 import 'package:openscan/Utilities/DatabaseHelper.dart';
@@ -184,15 +184,15 @@ class FileOperations {
 
     print(desiredQuality);
 
-    Directory cacheDir = await getTemporaryDirectory();
-    for (ImageOS image in images) {
-      path = await FlutterScannerCropper.compressImage(
-        src: image.imgPath,
-        dest: cacheDir.path,
-        desiredQuality: desiredQuality,
-      );
-      tempImages.add(File(path));
-    }
+    // Directory cacheDir = await getTemporaryDirectory();
+    // for (ImageOS image in images) {
+    //   path = await FlutterScannerCropper.compressImage(
+    //     src: image.imgPath,
+    //     dest: cacheDir.path,
+    //     desiredQuality: desiredQuality,
+    //   );
+    //   tempImages.add(File(path));
+    // }
     images = tempImages;
 
     fileName = fileName.replaceAll('-', '');

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_scanner_cropper/flutter_scanner_cropper.dart';
+// import 'package:flutter_scanner_cropper/flutter_scanner_cropper.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:open_file/open_file.dart';
 import 'package:openscan/Utilities/Classes.dart';
@@ -10,6 +10,7 @@ import 'package:openscan/Utilities/DatabaseHelper.dart';
 import 'package:openscan/Utilities/constants.dart';
 import 'package:openscan/Utilities/file_operations.dart';
 import 'package:openscan/Widgets/Image_Card.dart';
+// import 'package:openscan/screens/crop_image_screen.dart';
 import 'package:openscan/screens/home_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:reorderables/reorderables.dart';
@@ -151,11 +152,21 @@ class _ViewDocumentState extends State<ViewDocument> {
     Directory cacheDir = await getTemporaryDirectory();
     if (image != null) {
       if (!quickScan) {
-        imageFilePath = await FlutterScannerCropper.openCrop(
-          src: image.path,
-          dest: cacheDir.path,
-          shouldCompress: true,
-        );
+        // imageFilePath = await FlutterScannerCropper.openCrop(
+        //   src: image.path,
+        //   dest: cacheDir.path,
+        //   shouldCompress: true,
+        // );
+        // File tempFile = File('/storage/emulated/0/Download/test.jpg');
+        // image.copySync(tempFile.path);
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => CropImage(
+        //       file: image,
+        //     ),
+        //   ),
+        // );
       }
       File imageFile = File(imageFilePath ?? image.path);
       setState(() {});
