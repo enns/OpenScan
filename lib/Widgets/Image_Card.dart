@@ -8,6 +8,7 @@ import 'package:focused_menu/focused_menu.dart';
 import 'package:focused_menu/modals.dart';
 import 'package:openscan/Utilities/Classes.dart';
 import 'package:openscan/Utilities/DatabaseHelper.dart';
+import 'package:openscan/screens/crop_image_screen.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../Utilities/constants.dart';
@@ -69,35 +70,52 @@ class _ImageCardState extends State<ImageCard> {
                   style: TextStyle(color: Colors.black),
                 ),
                 onPressed: () async {
-                  Directory cacheDir = await getTemporaryDirectory();
+                  // Directory cacheDir = await getTemporaryDirectory();
                   // String imageFilePath = await FlutterScannerCropper.openCrop(
                   //   src: widget.imageOS.imgPath,
                   //   dest: cacheDir.path,
                   //   shouldCompress:
                   //       widget.imageOS.shouldCompress == 1 ? true : false,
                   // );
-                  // TODO: Below line newly added. Remove once cropper works
-                  String imageFilePath = widget.imageOS.imgPath;
-                  File image = File(imageFilePath);
+
+                  Directory appDocDir = await getExternalStorageDirectory();
+                  File imageFilePath = File(
+                    "${appDocDir.path}/Pictures/${DateTime.now()}",
+                  );
+                  File(widget.imageOS.imgPath).copySync(imageFilePath.path);
+
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CropImage(
+                        file: imageFilePath,
+                      ),
+                    ),
+                  );
+
+                  File image = imageFilePath;
                   File temp = File(widget.imageOS.imgPath.substring(
                           0, widget.imageOS.imgPath.lastIndexOf(".")) +
                       "c.jpg");
                   File(widget.imageOS.imgPath).deleteSync();
+
                   if (image != null) {
                     image.copySync(temp.path);
                   }
                   widget.imageOS.imgPath = temp.path;
-                  print(temp.path);
+
                   database.updateImagePath(
                     tableName: widget.directoryOS.dirName,
                     image: widget.imageOS,
                   );
+
                   if (widget.imageOS.idx == 1) {
                     database.updateFirstImagePath(
                       imagePath: widget.imageOS.imgPath,
                       dirPath: widget.directoryOS.dirPath,
                     );
                   }
+
                   if (widget.imageOS.shouldCompress == 1) {
                     database.updateShouldCompress(
                       image: widget.imageOS,

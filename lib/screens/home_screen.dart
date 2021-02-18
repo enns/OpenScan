@@ -211,7 +211,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.only(bottom: 5.0),
                 child: Text(
                   'Drag down to refresh',
-                  style: TextStyle(color: Colors.grey[700], fontSize: 11),
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 11,
+                  ),
                 ),
               ),
               Expanded(
@@ -219,8 +222,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   future: getMasterData(),
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     return Theme(
-                      data:
-                          Theme.of(context).copyWith(accentColor: primaryColor),
+                      data: Theme.of(context).copyWith(
+                        accentColor: primaryColor,
+                      ),
                       child: ListView.builder(
                         itemCount: masterDirectories.length,
                         itemBuilder: (context, index) {

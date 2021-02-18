@@ -10,7 +10,7 @@ import 'package:openscan/Utilities/DatabaseHelper.dart';
 import 'package:openscan/Utilities/constants.dart';
 import 'package:openscan/Utilities/file_operations.dart';
 import 'package:openscan/Widgets/Image_Card.dart';
-// import 'package:openscan/screens/crop_image_screen.dart';
+import 'package:openscan/screens/crop_image_screen.dart';
 import 'package:openscan/screens/home_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:reorderables/reorderables.dart';
@@ -43,7 +43,7 @@ class _ViewDocumentState extends State<ViewDocument> {
   DatabaseHelper database = DatabaseHelper();
   List<String> imageFilesPath = [];
   List<Widget> imageCards = [];
-  String imageFilePath;
+  File imageFileTemp;
   FileOperations fileOperations;
   String dirPath;
   String fileName = '';
@@ -66,17 +66,19 @@ class _ViewDocumentState extends State<ViewDocument> {
     selectedImageIndex = [];
     int index = 1;
     directoryData = await database.getDirectoryData(widget.directoryOS.dirName);
-    print('Directory table[$widget.directoryOS.dirName] => $directoryData');
+    print("Directory table[$widget.directoryOS.dirName] => $directoryData");
     for (var image in directoryData) {
-      // Updating first image path after delete
+      // Updating first image path after deletion
       if (updateFirstImage) {
         database.updateFirstImagePath(
-            imagePath: image['img_path'], dirPath: widget.directoryOS.dirPath);
+          imagePath: image['img_path'],
+          dirPath: widget.directoryOS.dirPath,
+        );
         updateFirstImage = false;
       }
       var i = image['idx'];
 
-      // Updating index of images after delete
+      // Updating index of images after deletion
       if (updateIndex) {
         i = index;
         database.updateImageIndex(
@@ -149,7 +151,7 @@ class _ViewDocumentState extends State<ViewDocument> {
     } else {
       image = await fileOperations.openCamera();
     }
-    Directory cacheDir = await getTemporaryDirectory();
+
     if (image != null) {
       if (!quickScan) {
         // imageFilePath = await FlutterScannerCropper.openCrop(
@@ -157,26 +159,35 @@ class _ViewDocumentState extends State<ViewDocument> {
         //   dest: cacheDir.path,
         //   shouldCompress: true,
         // );
-        // File tempFile = File('/storage/emulated/0/Download/test.jpg');
-        // image.copySync(tempFile.path);
-        // await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => CropImage(
-        //       file: image,
-        //     ),
-        //   ),
-        // );
+        Directory appDocDir = await getExternalStorageDirectory();
+        imageFileTemp = File(
+          "${appDocDir.path}/Pictures/${DateTime.now()}",
+        );
+        image.copySync(imageFileTemp.path);
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CropImage(
+              file: imageFileTemp,
+            ),
+          ),
+        );
       }
-      File imageFile = File(imageFilePath ?? image.path);
+
+      // File imageFile = File(imageFilePath ?? image.path);
+      print(imageFileTemp);
+      File imageFile = imageFileTemp ?? image;
       setState(() {});
+
       await fileOperations.saveImage(
         image: imageFile,
         index: directoryImages.length + 1,
         dirPath: dirPath,
         shouldCompress: quickScan ? 1 : 0,
       );
+
       await fileOperations.deleteTemporaryFiles();
+
       if (quickScan) {
         createImage(quickScan: quickScan);
       }
