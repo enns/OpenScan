@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openscan/Utilities/constants.dart';
 import 'package:openscan/Widgets/polygon_painter.dart';
-import 'package:path_provider/path_provider.dart';
 
 class CropImage extends StatefulWidget {
   final File file;

@@ -105,6 +105,7 @@ public class MainActivity extends FlutterActivity {
                                 try{
                                     stream.close();
                                 } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
                                 result.success(true);
                             }
