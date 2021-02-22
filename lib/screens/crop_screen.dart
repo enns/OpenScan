@@ -26,6 +26,8 @@ class _CropImageState extends State<CropImage> {
   Offset tl, tr, bl, br, t, l, b, r;
   bool isLoading = false;
   File imageFile;
+  int crossoverThreshold = 5;
+  int crossoverAdjust = 6;
 
   MethodChannel channel = new MethodChannel('com.ethereal.openscan/cropper');
 
@@ -121,8 +123,14 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
-        if(tl.dx + 10 < tr.dx)
+        if (tl.dx < tr.dx - crossoverThreshold) {
           tl = points.localPosition;
+        } else {
+          tl = Offset(tr.dx - crossoverAdjust, tl.dy);
+        }
+        if (tl.dy + crossoverThreshold > bl.dy) {
+          tl = Offset(tl.dx, bl.dy - crossoverAdjust);
+        }
       });
     } else if (sqrt(pow((x3 - x1), 2) + pow((y3 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -130,7 +138,14 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
-        tr = points.localPosition;
+        if (tr.dx > tl.dx + crossoverThreshold) {
+          tr = points.localPosition;
+        } else {
+          tr = Offset(tr.dx + crossoverAdjust, tr.dy);
+        }
+        if (tr.dy + crossoverThreshold > br.dy) {
+          tr = Offset(tr.dx, br.dy - crossoverAdjust);
+        }
       });
     } else if (sqrt(pow((x4 - x1), 2) + pow((y4 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -138,7 +153,14 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
-        bl = points.localPosition;
+        if (bl.dx < br.dx - crossoverThreshold) {
+          bl = points.localPosition;
+        } else {
+          bl = Offset(br.dx - crossoverAdjust, bl.dy);
+        }
+        if (bl.dy - crossoverThreshold < tl.dy) {
+          bl = Offset(bl.dx, tl.dy + crossoverAdjust);
+        }
       });
     } else if (sqrt(pow((x5 - x1), 2) + pow((y5 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -146,7 +168,14 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
-        br = points.localPosition;
+        if (br.dx > bl.dx + crossoverThreshold) {
+          br = points.localPosition;
+        } else {
+          br = Offset(br.dx + crossoverAdjust, br.dy);
+        }
+        if (br.dy - crossoverThreshold < tr.dy) {
+          br = Offset(br.dx, tr.dy + crossoverAdjust);
+        }
       });
     } else if (sqrt(pow((x6 - x1), 2) + pow((y6 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -156,10 +185,12 @@ class _CropImageState extends State<CropImage> {
       setState(() {
         double displacement = y1 - y6;
         t = points.localPosition;
-        if(tl.dy + displacement > 0)
+        if (tl.dy + displacement > 0) {
           tl = Offset(tl.dx, tl.dy + displacement);
-        if(tr.dy + displacement > 0)
+        }
+        if (tr.dy + displacement > 0) {
           tr = Offset(tr.dx, tr.dy + displacement);
+        }
       });
     } else if (sqrt(pow((x7 - x1), 2) + pow((y7 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -169,10 +200,12 @@ class _CropImageState extends State<CropImage> {
       setState(() {
         double displacement = y7 - y1;
         b = points.localPosition;
-        if(bl.dy - displacement < height)
+        if (bl.dy - displacement < height) {
           bl = Offset(bl.dx, bl.dy - displacement);
-        if(br.dy + displacement < height)
+        }
+        if (br.dy - displacement < height) {
           br = Offset(br.dx, br.dy - displacement);
+        }
       });
     } else if (sqrt(pow((x8 - x1), 2) + pow((y8 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -182,10 +215,12 @@ class _CropImageState extends State<CropImage> {
       setState(() {
         double displacement = x1 - x8;
         l = points.localPosition;
-        if(tl.dx + displacement > 0)
+        if (tl.dx + displacement > 0) {
           tl = Offset(tl.dx + displacement, tl.dy);
-        if(bl.dx + displacement > 0)
+        }
+        if (bl.dx + displacement > 0) {
           bl = Offset(bl.dx + displacement, bl.dy);
+        }
       });
     } else if (sqrt(pow((x9 - x1), 2) + pow((y9 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -195,12 +230,26 @@ class _CropImageState extends State<CropImage> {
       setState(() {
         double displacement = x9 - x1;
         r = points.localPosition;
-        if(tr.dx - displacement < width)
+        if (tr.dx - displacement < width) {
           tr = Offset(tr.dx - displacement, tr.dy);
-        if(br.dx - displacement < width)
+        }
+        if (br.dx - displacement < width) {
           br = Offset(br.dx - displacement, br.dy);
+        }
       });
     }
+
+    setState(() {
+      if (tl.dx < 0) tl = Offset(0, tl.dy);
+      if (tl.dy < 0) tl = Offset(tl.dx, 0);
+      if (tr.dx > width) tr = Offset(width, tr.dy);
+      if (tr.dy < 0) tr = Offset(tr.dx, 0);
+      if (bl.dx < 0) bl = Offset(0, bl.dy);
+      if (bl.dy > height) bl = Offset(bl.dx, height);
+      if (br.dx > width) br = Offset(width, br.dy);
+      if (br.dy > height) br = Offset(br.dx, height);
+    });
+
     t = Offset((tr.dx + tl.dx) / 2, (tr.dy + tl.dy) / 2);
     l = Offset((tl.dx + bl.dx) / 2, (tl.dy + bl.dy) / 2);
     b = Offset((br.dx + bl.dx) / 2, (br.dy + bl.dy) / 2);
@@ -248,9 +297,9 @@ class _CropImageState extends State<CropImage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: WillPopScope(
-        onWillPop: (){
-          Navigator.pop(context,null);
-          return ;
+        onWillPop: () {
+          Navigator.pop(context, null);
+          return;
         },
         child: Scaffold(
           backgroundColor: primaryColor,
