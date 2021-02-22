@@ -10,7 +10,7 @@ import 'package:openscan/Utilities/DatabaseHelper.dart';
 import 'package:openscan/Utilities/constants.dart';
 import 'package:openscan/Utilities/file_operations.dart';
 import 'package:openscan/Widgets/Image_Card.dart';
-import 'package:openscan/screens/crop_image_screen.dart';
+import 'package:openscan/screens/crop_screen.dart';
 import 'package:openscan/screens/home_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:reorderables/reorderables.dart';
@@ -55,6 +55,7 @@ class _ViewDocumentState extends State<ViewDocument> {
   bool quickScan = false;
   ImageOS displayImage;
   int imageQuality = 3;
+  var croppedImage;
 
   void getDirectoryData({
     bool updateFirstImage = false,
@@ -152,16 +153,12 @@ class _ViewDocumentState extends State<ViewDocument> {
       image = await fileOperations.openCamera();
     }
 
+    print('image: ${image.path}');
     if (image != null) {
       if (!quickScan) {
-        // imageFilePath = await FlutterScannerCropper.openCrop(
-        //   src: image.path,
-        //   dest: cacheDir.path,
-        //   shouldCompress: true,
-        // );
         Directory appDocDir = await getExternalStorageDirectory();
         imageFileTemp = File(
-          "${appDocDir.path}/Pictures/${DateTime.now()}",
+          "${appDocDir.path}/Pictures/${DateTime.now()}.jpg",
         );
         image.copySync(imageFileTemp.path);
         await Navigator.push(
@@ -171,21 +168,20 @@ class _ViewDocumentState extends State<ViewDocument> {
               file: imageFileTemp,
             ),
           ),
-        );
+        ).then((value) => croppedImage = value);
       }
 
-      // File imageFile = File(imageFilePath ?? image.path);
-      print(imageFileTemp);
-      File imageFile = imageFileTemp ?? image;
-      setState(() {});
+      if(croppedImage.path != null) {
+        print('Crop is not null');
+        print('cropped: $croppedImage');
 
-      await fileOperations.saveImage(
-        image: imageFile,
-        index: directoryImages.length + 1,
-        dirPath: dirPath,
-        shouldCompress: quickScan ? 1 : 0,
-      );
-
+        await fileOperations.saveImage(
+          image: croppedImage,
+          index: directoryImages.length + 1,
+          dirPath: dirPath,
+          shouldCompress: quickScan ? 1 : 0,
+        );
+      }
       await fileOperations.deleteTemporaryFiles();
 
       if (quickScan) {

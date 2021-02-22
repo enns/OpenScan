@@ -102,6 +102,11 @@ public class MainActivity extends FlutterActivity {
                                     e.printStackTrace();
                                 }
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                                try{
+                                    stream.close();
+                                } catch (Exception e) {
+                                }
+                                result.success(true);
                             }
                         }
                 );

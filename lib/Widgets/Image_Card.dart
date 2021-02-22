@@ -8,7 +8,7 @@ import 'package:focused_menu/focused_menu.dart';
 import 'package:focused_menu/modals.dart';
 import 'package:openscan/Utilities/Classes.dart';
 import 'package:openscan/Utilities/DatabaseHelper.dart';
-import 'package:openscan/screens/crop_image_screen.dart';
+import 'package:openscan/screens/crop_screen.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../Utilities/constants.dart';
@@ -36,7 +36,7 @@ class ImageCard extends StatefulWidget {
 class _ImageCardState extends State<ImageCard> {
   DatabaseHelper database = DatabaseHelper();
 
-  selectionOnPressed() {
+  onSelectionPressed() {
     setState(() {
       selectedImageIndex[widget.imageOS.idx - 1] = true;
     });
@@ -53,14 +53,14 @@ class _ImageCardState extends State<ImageCard> {
           color: primaryColor,
           onPressed: () {
             (enableSelect)
-                ? selectionOnPressed()
+                ? onSelectionPressed()
                 : widget.imageViewerCallback();
           },
           child: FocusedMenuHolder(
             menuWidth: size.width * 0.45,
             onPressed: () {
               (enableSelect)
-                  ? selectionOnPressed()
+                  ? onSelectionPressed()
                   : widget.imageViewerCallback();
             },
             menuItems: [
@@ -70,59 +70,46 @@ class _ImageCardState extends State<ImageCard> {
                   style: TextStyle(color: Colors.black),
                 ),
                 onPressed: () async {
-                  // Directory cacheDir = await getTemporaryDirectory();
-                  // String imageFilePath = await FlutterScannerCropper.openCrop(
-                  //   src: widget.imageOS.imgPath,
-                  //   dest: cacheDir.path,
-                  //   shouldCompress:
-                  //       widget.imageOS.shouldCompress == 1 ? true : false,
-                  // );
-
-                  Directory appDocDir = await getExternalStorageDirectory();
-                  File imageFilePath = File(
-                    "${appDocDir.path}/Pictures/${DateTime.now()}",
-                  );
-                  File(widget.imageOS.imgPath).copySync(imageFilePath.path);
-
+                  File tmpImage;
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CropImage(
-                        file: imageFilePath,
+                        file: File(widget.imageOS.imgPath),
                       ),
                     ),
-                  );
+                  ).then((value) => tmpImage = value);
 
-                  File image = imageFilePath;
-                  File temp = File(widget.imageOS.imgPath.substring(
-                          0, widget.imageOS.imgPath.lastIndexOf(".")) +
-                      "c.jpg");
-                  File(widget.imageOS.imgPath).deleteSync();
+                  print('temp image: ${tmpImage.path} ${tmpImage.existsSync()}');
+                  if(tmpImage.path != null){
+                    File(widget.imageOS.imgPath).deleteSync();
+                    widget.imageOS.imgPath = tmpImage.path;
+                    File temp = File(widget.imageOS.imgPath.substring(
+                        0, widget.imageOS.imgPath.lastIndexOf(".")) +
+                        "c.jpg");
+                    File(widget.imageOS.imgPath).copySync(temp.path);
+                    widget.imageOS.imgPath = temp.path;
 
-                  if (image != null) {
-                    image.copySync(temp.path);
-                  }
-                  widget.imageOS.imgPath = temp.path;
-
-                  database.updateImagePath(
-                    tableName: widget.directoryOS.dirName,
-                    image: widget.imageOS,
-                  );
-
-                  if (widget.imageOS.idx == 1) {
-                    database.updateFirstImagePath(
-                      imagePath: widget.imageOS.imgPath,
-                      dirPath: widget.directoryOS.dirPath,
-                    );
-                  }
-
-                  if (widget.imageOS.shouldCompress == 1) {
-                    database.updateShouldCompress(
-                      image: widget.imageOS,
+                    database.updateImagePath(
                       tableName: widget.directoryOS.dirName,
+                      image: widget.imageOS,
                     );
+
+                    if (widget.imageOS.idx == 1) {
+                      database.updateFirstImagePath(
+                        imagePath: widget.imageOS.imgPath,
+                        dirPath: widget.directoryOS.dirPath,
+                      );
+                    }
+
+                    if (widget.imageOS.shouldCompress == 1) {
+                      database.updateShouldCompress(
+                        image: widget.imageOS,
+                        tableName: widget.directoryOS.dirName,
+                      );
+                    }
+                    widget.fileEditCallback();
                   }
-                  widget.fileEditCallback();
                 },
                 trailingIcon: Icon(
                   Icons.crop,

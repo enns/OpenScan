@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openscan/Utilities/constants.dart';
 import 'package:openscan/screens/about_screen.dart';
-// import 'package:openscan/screens/crop_image_screen.dart';
+// import 'package:openscan/screens/crop_screen.dart';
 import 'package:openscan/screens/getting_started_screen.dart';
 import 'package:openscan/screens/home_screen.dart';
 import 'package:openscan/screens/loading_screen.dart';
