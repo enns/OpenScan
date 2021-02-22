@@ -171,7 +171,7 @@ class _ViewDocumentState extends State<ViewDocument> {
         ).then((value) => croppedImage = value);
       }
 
-      if(croppedImage.path != null) {
+      if (croppedImage.path != null) {
         print('Crop is not null');
         print('cropped: $croppedImage');
 
@@ -328,6 +328,7 @@ class _ViewDocumentState extends State<ViewDocument> {
             });
           } else {
             Navigator.pop(context);
+            fileOperations.deleteTemporaryFiles();
           }
           return;
         },

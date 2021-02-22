@@ -70,24 +70,27 @@ class _ImageCardState extends State<ImageCard> {
                   style: TextStyle(color: Colors.black),
                 ),
                 onPressed: () async {
-                  File tmpImage;
+                  Directory appDocDir = await getExternalStorageDirectory();
+                  File tmpImage = File(
+                    "${appDocDir.path}/Pictures/${DateTime.now()}.jpg",
+                  );
+                  File(widget.imageOS.imgPath).copySync(tmpImage.path);
+
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CropImage(
-                        file: File(widget.imageOS.imgPath),
+                        file: File(tmpImage.path),
                       ),
                     ),
                   ).then((value) => tmpImage = value);
 
-                  print('temp image: ${tmpImage.path} ${tmpImage.existsSync()}');
-                  if(tmpImage.path != null){
+                  if (tmpImage.path != null) {
                     File(widget.imageOS.imgPath).deleteSync();
-                    widget.imageOS.imgPath = tmpImage.path;
                     File temp = File(widget.imageOS.imgPath.substring(
-                        0, widget.imageOS.imgPath.lastIndexOf(".")) +
+                            0, widget.imageOS.imgPath.lastIndexOf(".")) +
                         "c.jpg");
-                    File(widget.imageOS.imgPath).copySync(temp.path);
+                    tmpImage.copySync(temp.path);
                     widget.imageOS.imgPath = temp.path;
 
                     database.updateImagePath(
