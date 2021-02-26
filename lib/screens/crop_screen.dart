@@ -97,6 +97,38 @@ class _CropImageState extends State<CropImage> {
     if (isRenderBoxValuesCorrect) return;
   }
 
+  checkPolygon(Offset p1, Offset q1, Offset p2, Offset q2){
+    bool onSegment(Offset p, Offset q, Offset r)
+    {
+      if (q.dx <= max(p.dx, r.dx) && q.dx >= min(p.dx, r.dx) &&
+          q.dy <= max(p.dy, r.dy) && q.dy >= min(p.dy, r.dy))
+        return true;
+      return false;
+    }
+
+    int orientation(Offset p, Offset q, Offset r)
+    {
+      double val = (q.dy - p.dy) * (r.dx - q.dx) -
+          (q.dx - p.dx) * (r.dy - q.dy);
+      if (val == 0) return 0;
+      return (val > 0)? 1: 2;
+    }
+
+    int o1 = orientation(p1, q1, p2);
+    int o2 = orientation(p1, q1, q2);
+    int o3 = orientation(p2, q2, p1);
+    int o4 = orientation(p2, q2, q1);
+
+    if (o1 != o2 && o3 != o4)
+      return true;
+
+    if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+    if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+    if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+    if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+    return false;
+  }
+
   void updatePolygon(points) {
     double x1 = points.localPosition.dx;
     double y1 = points.localPosition.dy;
@@ -123,14 +155,21 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
+        bool isConvexPolygon = checkPolygon(Offset(tl.dx - crossoverThreshold, tl.dy + crossoverThreshold), br, tr, bl);
         if (tl.dx < tr.dx - crossoverThreshold) {
-          tl = points.localPosition;
+          if(!isConvexPolygon){
+            tl = Offset(tl.dx - crossoverAdjust, tl.dy - crossoverAdjust);
+          } else {
+            tl = points.localPosition;
+          }
         } else {
           tl = Offset(tr.dx - crossoverAdjust, tl.dy);
         }
         if (tl.dy + crossoverThreshold > bl.dy) {
           tl = Offset(tl.dx, bl.dy - crossoverAdjust);
         }
+        t = Offset((tr.dx + tl.dx) / 2, (tr.dy + tl.dy) / 2);
+        l = Offset((tl.dx + bl.dx) / 2, (tl.dy + bl.dy) / 2);
       });
     } else if (sqrt(pow((x3 - x1), 2) + pow((y3 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -138,14 +177,21 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
+        bool isConvexPolygon = checkPolygon(tl, br, Offset(tr.dx - crossoverThreshold, tr.dy - crossoverThreshold), bl);
         if (tr.dx > tl.dx + crossoverThreshold) {
-          tr = points.localPosition;
+          if(!isConvexPolygon){
+            tr = Offset(tr.dx + crossoverAdjust, tr.dy - crossoverAdjust);
+          } else {
+            tr = points.localPosition;
+          }
         } else {
           tr = Offset(tr.dx + crossoverAdjust, tr.dy);
         }
         if (tr.dy + crossoverThreshold > br.dy) {
           tr = Offset(tr.dx, br.dy - crossoverAdjust);
         }
+        t = Offset((tr.dx + tl.dx) / 2, (tr.dy + tl.dy) / 2);
+        r = Offset((tr.dx + br.dx) / 2, (tr.dy + br.dy) / 2);
       });
     } else if (sqrt(pow((x4 - x1), 2) + pow((y4 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -153,14 +199,21 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
+        bool isConvexPolygon = checkPolygon(tl, br, tr, Offset(bl.dx + crossoverThreshold, bl.dy - crossoverThreshold));
         if (bl.dx < br.dx - crossoverThreshold) {
-          bl = points.localPosition;
+          if(!isConvexPolygon){
+            bl = Offset(bl.dx - crossoverAdjust, bl.dy + crossoverAdjust);
+          } else {
+            bl = points.localPosition;
+          }
         } else {
           bl = Offset(br.dx - crossoverAdjust, bl.dy);
         }
         if (bl.dy - crossoverThreshold < tl.dy) {
           bl = Offset(bl.dx, tl.dy + crossoverAdjust);
         }
+        l = Offset((tl.dx + bl.dx) / 2, (tl.dy + bl.dy) / 2);
+        b = Offset((br.dx + bl.dx) / 2, (br.dy + bl.dy) / 2);
       });
     } else if (sqrt(pow((x5 - x1), 2) + pow((y5 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -168,14 +221,21 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
+        bool isConvexPolygon = checkPolygon(tl, Offset(br.dx - crossoverThreshold, br.dy - crossoverThreshold), tr, bl);
         if (br.dx > bl.dx + crossoverThreshold) {
-          br = points.localPosition;
+          if(!isConvexPolygon){
+            br = Offset(br.dx + crossoverAdjust, br.dy + crossoverAdjust);
+          } else {
+            br = points.localPosition;
+          }
         } else {
           br = Offset(br.dx + crossoverAdjust, br.dy);
         }
         if (br.dy - crossoverThreshold < tr.dy) {
           br = Offset(br.dx, tr.dy + crossoverAdjust);
         }
+        b = Offset((br.dx + bl.dx) / 2, (br.dy + bl.dy) / 2);
+        r = Offset((tr.dx + br.dx) / 2, (tr.dy + br.dy) / 2);
       });
     } else if (sqrt(pow((x6 - x1), 2) + pow((y6 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -183,14 +243,20 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
-        double displacement = y1 - y6;
-        t = points.localPosition;
+        if(t.dy + crossoverThreshold < b.dy){
+          t = Offset(t.dx, points.localPosition.dy);
+        } else {
+          t = Offset(t.dx, t.dy - crossoverAdjust);
+        }
+        double displacement = t.dy - y6;
         if (tl.dy + displacement > 0) {
           tl = Offset(tl.dx, tl.dy + displacement);
         }
         if (tr.dy + displacement > 0) {
           tr = Offset(tr.dx, tr.dy + displacement);
         }
+        l = Offset((tl.dx + bl.dx) / 2, (tl.dy + bl.dy) / 2);
+        r = Offset((tr.dx + br.dx) / 2, (tr.dy + br.dy) / 2);
       });
     } else if (sqrt(pow((x7 - x1), 2) + pow((y7 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -198,14 +264,20 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
-        double displacement = y7 - y1;
-        b = points.localPosition;
+        if(t.dy < b.dy - crossoverThreshold){
+          b = Offset(b.dx, points.localPosition.dy);
+        } else {
+          b = Offset(b.dx, b.dy + crossoverAdjust);
+        }
+        double displacement = y7 - b.dy;
         if (bl.dy - displacement < height) {
           bl = Offset(bl.dx, bl.dy - displacement);
         }
         if (br.dy - displacement < height) {
           br = Offset(br.dx, br.dy - displacement);
         }
+        l = Offset((tl.dx + bl.dx) / 2, (tl.dy + bl.dy) / 2);
+        r = Offset((tr.dx + br.dx) / 2, (tr.dy + br.dy) / 2);
       });
     } else if (sqrt(pow((x8 - x1), 2) + pow((y8 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -213,14 +285,20 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
-        double displacement = x1 - x8;
-        l = points.localPosition;
+        if(l.dx < r.dx - crossoverThreshold){
+          l = Offset(points.localPosition.dx, l.dy);
+        } else {
+          l = Offset(l.dx, l.dy - crossoverAdjust);
+        }
+        double displacement = l.dx - x8;
         if (tl.dx + displacement > 0) {
           tl = Offset(tl.dx + displacement, tl.dy);
         }
         if (bl.dx + displacement > 0) {
           bl = Offset(bl.dx + displacement, bl.dy);
         }
+        t = Offset((tr.dx + tl.dx) / 2, (tr.dy + tl.dy) / 2);
+        b = Offset((br.dx + bl.dx) / 2, (br.dy + bl.dy) / 2);
       });
     } else if (sqrt(pow((x9 - x1), 2) + pow((y9 - y1), 2)) < 15 &&
         y1 >= 0 &&
@@ -228,14 +306,20 @@ class _CropImageState extends State<CropImage> {
         x1 < width &&
         x1 >= 0) {
       setState(() {
-        double displacement = x9 - x1;
-        r = points.localPosition;
+        if(l.dx < r.dx - crossoverThreshold){
+          r = Offset(points.localPosition.dx, r.dy);
+        } else {
+          r = Offset(r.dx, r.dy + crossoverAdjust);
+        }
+        double displacement = x9 - r.dx;
         if (tr.dx - displacement < width) {
           tr = Offset(tr.dx - displacement, tr.dy);
         }
         if (br.dx - displacement < width) {
           br = Offset(br.dx - displacement, br.dy);
         }
+        t = Offset((tr.dx + tl.dx) / 2, (tr.dy + tl.dy) / 2);
+        b = Offset((br.dx + bl.dx) / 2, (br.dy + bl.dy) / 2);
       });
     }
 
@@ -249,11 +333,6 @@ class _CropImageState extends State<CropImage> {
       if (br.dx > width) br = Offset(width, br.dy);
       if (br.dy > height) br = Offset(br.dx, height);
     });
-
-    t = Offset((tr.dx + tl.dx) / 2, (tr.dy + tl.dy) / 2);
-    l = Offset((tl.dx + bl.dx) / 2, (tl.dy + bl.dy) / 2);
-    b = Offset((br.dx + bl.dx) / 2, (br.dy + bl.dy) / 2);
-    r = Offset((tr.dx + br.dx) / 2, (tr.dy + br.dy) / 2);
   }
 
   void crop() async {
