@@ -23,15 +23,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   DatabaseHelper database = DatabaseHelper();
   List<Map<String, dynamic>> masterData;
-  List<DirectoryOS> masterDirectories = [];
+  List<DirectoryOS> masterDirectoryList = [];
 
-  Future homeRefresh() async {
-    await getMasterData();
+  Future<void> homeRefresh() async {
     setState(() {});
-  }
-
-  void getData() {
-    homeRefresh();
   }
 
   Future<bool> _requestPermission() async {
@@ -50,18 +45,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<List<DirectoryOS>> getMasterData() async {
-    masterDirectories = [];
+    masterDirectoryList = [];
     masterData = await database.getMasterData();
     print('Master Table => $masterData');
     for (var directory in masterData) {
-      var flag = false;
-      for (var dir in masterDirectories) {
+      var addedFileFlag = false;
+      for (var dir in masterDirectoryList) {
         if (dir.dirPath == directory['dir_path']) {
-          flag = true;
+          addedFileFlag = true;
         }
       }
-      if (!flag) {
-        masterDirectories.add(
+      if (!addedFileFlag) {
+        masterDirectoryList.add(
           DirectoryOS(
             dirName: directory['dir_name'],
             dirPath: directory['dir_path'],
@@ -74,15 +69,15 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     }
-    masterDirectories = masterDirectories.reversed.toList();
-    return masterDirectories;
+    masterDirectoryList = masterDirectoryList.reversed.toList();
+    return masterDirectoryList;
   }
 
   @override
   void initState() {
     super.initState();
     askPermission();
-    getMasterData();
+    // getMasterData();
   }
 
   @override
@@ -226,20 +221,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         accentColor: primaryColor,
                       ),
                       child: ListView.builder(
-                        itemCount: masterDirectories.length,
+                        itemCount: masterDirectoryList.length,
                         itemBuilder: (context, index) {
                           return FocusedMenuHolder(
                             onPressed: null,
                             menuWidth: size.width * 0.44,
                             child: ListTile(
                               leading: Image.file(
-                                File(masterDirectories[index].firstImgPath),
+                                File(masterDirectoryList[index].firstImgPath),
                                 width: 50,
                                 height: 50,
                               ),
                               title: Text(
-                                masterDirectories[index].newName ??
-                                    masterDirectories[index].dirName,
+                                masterDirectoryList[index].newName ??
+                                    masterDirectoryList[index].dirName,
                                 style: TextStyle(fontSize: 14),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -248,11 +243,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Last Modified: ${masterDirectories[index].lastModified.day}-${masterDirectories[index].lastModified.month}-${masterDirectories[index].lastModified.year}',
+                                    'Last Modified: ${masterDirectoryList[index].lastModified.day}-${masterDirectoryList[index].lastModified.month}-${masterDirectoryList[index].lastModified.year}',
                                     style: TextStyle(fontSize: 11),
                                   ),
                                   Text(
-                                    '${masterDirectories[index].imageCount} ${(masterDirectories[index].imageCount == 1) ? 'image' : 'images'}',
+                                    '${masterDirectoryList[index].imageCount} ${(masterDirectoryList[index].imageCount == 1) ? 'image' : 'images'}',
                                     style: TextStyle(fontSize: 11),
                                   ),
                                 ],
@@ -267,11 +262,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ViewDocument(
-                                      directoryOS: masterDirectories[index],
+                                      directoryOS: masterDirectoryList[index],
                                     ),
                                   ),
                                 ).whenComplete(() {
-                                  homeRefresh();
+                                  setState(() {});
                                 });
                               },
                             ),
@@ -325,12 +320,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                             onPressed: () {
                                               Navigator.pop(context);
                                               print(fileName);
-                                              masterDirectories[index].newName =
+                                              masterDirectoryList[index].newName =
                                                   fileName;
                                               database.renameDirectory(
                                                   directory:
-                                                      masterDirectories[index]);
-                                              homeRefresh();
+                                                      masterDirectoryList[index]);
+                                              setState(() {});
                                             },
                                             child: Text(
                                               'Save',
@@ -371,15 +366,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           FlatButton(
                                             onPressed: () {
-                                              Directory(masterDirectories[index]
+                                              Directory(masterDirectoryList[index]
                                                       .dirPath)
                                                   .deleteSync(recursive: true);
                                               database.deleteDirectory(
                                                   dirPath:
-                                                      masterDirectories[index]
+                                                      masterDirectoryList[index]
                                                           .dirPath);
                                               Navigator.pop(context);
-                                              homeRefresh();
+                                              setState(() {});
                                             },
                                             child: Text(
                                               'Delete',
@@ -438,7 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ).whenComplete(() {
-                  homeRefresh();
+                  setState(() {});
                 });
               },
             ),
@@ -457,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ).whenComplete(() {
-                  homeRefresh();
+                  setState(() {});
                 });
               },
             ),
@@ -477,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ).whenComplete(() {
-                  homeRefresh();
+                  setState(() {});
                 });
               },
             ),
